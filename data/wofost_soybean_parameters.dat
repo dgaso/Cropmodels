@@ -1,0 +1,192 @@
+# Crop data file for use with WOFOST, soybean version for SIGMA project
+# Allard de Wit 2015/06/18
+# 
+# parameter values for phenology  and functions for photoperiod and temperature derived from:
+# Understanding and modeling the effect of temperature and daylength on soybean phenology
+# under high-yield conditions. Setiyono et al. 2007. doi 10.1016/j.fcr.2006.07.011
+# http://digitalcommons.unl.edu/agronomyfacpub/112
+
+# crop identity
+CRPNAM  = 'Soybean (Glycine max (L.) Merril)'
+
+# emergence
+TBASEM   =   7.0    # lower threshold temp. for emergence [cel]
+TEFFMX   =  22.0    # max. eff. temp. for emergence [cel]
+TSUMEM   =  90.     # temperature sum from sowing to emergence [cel d]
+
+# phenology 
+#MG=3.66
+#DVRMAX1  = 0.0398     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.0567     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 15.02
+#Popt = 9.49
+
+#MG=5
+#DVRMAX1  = 0.0328     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.0729     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 14.89
+#Popt = 7.92
+
+#MG=5.66
+#DVRMAX1  = 0.0278     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.0844     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 14.3
+#Popt = 7.84
+    
+#MG=6
+DVRMAX1  = 0.0247     # Maximum development rate from emergence to anthesis [cel d]
+DVRMAX2  = 0.0994     # Maximum development rate from anthesis to maturity [cel d]
+Pcrt = 14.11
+Popt = 7.66
+    
+#MG=7
+#DVRMAX1  = 0.0231     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.0920     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 14.
+#Popt = 7.78
+
+
+MG       = 2.       # Maturity group rating
+Tmin = 7.0          # Minimum temperature for development rates 
+Topt = 31.0         # optimal temperature ...
+Tmax = 40.0         # Maximum temperature ...
+DVSI = 0.           # initial DVS
+DVSEND   =   2.00   # development stage at harvest (= 2.0 at maturity [-])
+
+# initial
+TDWI     =  120.0   # initial total crop dry weight [kg ha-1]
+LAIEM    =   0.0163 # leaf area index at emergence [ha ha-1]
+RGRLAI   =   0.0100 # maximum relative increase in LAI [ha ha-1 d-1]
+
+
+# assimilation
+KDIFTB =[0.0, 0.80, # extinction coefficient for diffuse visible light [-] 
+         2.0, 0.80] # as function of DVS
+EFFTB  =[0.0, 0.40, # light-use effic. single leaf [kg ha-1 hr-1 j-1 m2 s]
+        40.0, 0.40] # as function of daily mean temp.
+AMAXTB   =  [0.00,   29.00,     # max. leaf CO2 assim. rate
+             1.70,   29.00,     # function of DVS [-; kg ha-1 hr-1]
+             2.00,    0.00]
+TMPFTB   =  [0.00,    0.00,     # reduction factor of AMAX
+            10.00,    0.30,     # as function of av. temp. [cel; -]
+            20.00,    0.60,
+            25.00,    0.80,
+            30.00,    1.00,
+            35.00,    1.00]
+TMNFTB   =  [0.00,    0.00,     # red. factor of gross assim. rate
+             3.00,    1.00]     # as function of low min. temp. [cel; -]
+
+# conversion of assimilates into biomass
+CVL      =   0.720  # efficiency of conversion into leaves [kg kg-1]
+CVO      =   0.480  # efficiency of conversion into storage org. [kg kg-1]
+CVR      =   0.720  # efficiency of conversion into roots [kg kg-1]
+CVS      =   0.690  # efficiency of conversion into stems [kg kg-1]
+
+# maintenance respiration
+Q10      =   2.0    # rel. incr. in resp. rate per 10 Cel temp. incr. [-]
+RML      =   0.030  # rel. maint. resp. rate leaves [kg CH2O kg-1 d-1]
+RMO      =   0.017  # rel. maint. resp. rate stor.org. [kg CH2O kg-1 d-1]
+RMR      =   0.010  # rel. maint. resp. rate roots [kg CH2O kg-1 d-1]
+RMS      =   0.015  # rel. maint. resp. rate stems [kg CH2O kg-1 d-1]
+RFSETB   =  [0.00,    1.00,     # red. factor for senescence
+             2.00,    1.00]     # as function of DVS [-; -]
+
+
+# death rates
+PERDL    =   0.030  # max. rel. death rate of leaves due to water stress
+RDRRTB   =  [0.00,    0.000,    # rel. death rate of stems 
+             1.50,    0.000,    # as a function of DVS [-; kg kg-1 d-1]
+             1.5001,  0.020,
+             2.00,    0.020]
+RDRSTB   =  [0.00,    0.000,    # rel. death rate of roots
+             1.50,    0.000,    # as a function of DVS [-; kg kg-1 d-1]
+             1.5001,  0.020,
+             2.00,    0.020]
+
+# water use
+CFET     =   1.00   # correction factor transpiration rate [-]
+DEPNR    =   5.0    # crop group number for soil water depletion [-]
+IAIRDU   =   0      # air ducts in roots present (=1) or not (=0)
+IOX      =   0      # Oxygen stress switched off
+CRAIRC   =   0.05   # Critical air content in soil
+
+# rooting
+RDI      =  10.     # initial rooting depth [cm]
+RRI      =   1.2    # maximum daily increase in rooting depth [cm d-1]
+RDMCR    = 120.     # maximum rooting depth [cm]
+
+# nutrients
+# maximum and minimum concentrations of N, P, and K
+# in storage organs        in vegetative organs [kg kg-1]
+NMINSO   =   0.0350 ;       NMINVE   =   0.0070
+NMAXSO   =   0.0560 ;       NMAXVE   =   0.0220
+PMINSO   =   0.0027 ;       PMINVE   =   0.0011
+PMAXSO   =   0.0080 ;       PMAXVE   =   0.0052
+KMINSO   =   0.0120 ;       KMINVE   =   0.0070
+KMAXSO   =   0.0260 ;       KMAXVE   =   0.0240
+YZERO    =   0.     # max. amount veg. organs at zero yield [kg ha-1]
+NFIX     =   0.75   # fraction of N-uptake from biol. fixation [kg kg-1]
+
+## Senescence rate from LINTUL
+RDRT    =  [  0,    0.09,   # senescence rate (%)
+             10,    0.05,   # as a function of average temperature 
+             20,    0.04,
+             30,    0.03,
+             40,    0.05,
+             50,    0.09]
+# partitioning
+FRTB     =  [0.00,    0.65,     # fraction of total dry matter to roots
+             0.75,    0.35,     # as a function of DVS [-; kg kg-1]
+             1.00,    0.15,
+             1.50,    0.00,
+             2.00,    0.00]
+FLTB     =  [0.00,    0.70,     # fraction of above-gr. DM to leaves
+             0.50,    0.60,            
+             1.00,    0.40,             
+             1.30,    0.10,
+             1.50,    0.10,
+             2.00,    0.00]
+FSTB     =  [0.00,    0.30,     # fraction of above-gr. DM to stems
+             0.50,    0.40,
+             1.00,    0.60,             
+             1.30,    0.20,
+             1.50,    0.10,
+             2.00,    0.00]
+FOTB     =  [0.00,    0.00,     # fraction of above-gr. DM to stor. org.
+             0.50,    0.00,
+             1.00,    0.00,     # as a function of DVS [-; kg kg-1]                          
+             1.30,    0.70,
+             1.50,    0.80,
+             2.00,    1.00]
+
+# green area
+SLATB    =   [0.00,    0.0014,   # specific leaf area  
+             0.45,    0.0018,   # as a function of DVS [-; ha kg-1]
+             1.00,    0.0020,
+             2.00,    0.0007]
+SPA      =   0.000  # specific pod area [ha kg-1]
+SSATB = [0.0, 0.0,  # specific stem area [ha kg-1]
+         2.0, 0.0]  # as function of DVS
+SPAN     =  23.     # life span of leaves growing at 35 Celsius [d]
+TBASE    =   7.0    # lower threshold temp. for ageing of leaves [cel]
+
+DVV1 = 0.00109
+DVV2 = 0.011 
+DVV3 = 0.35
+
+initLAI=0.2
+
+K = 0.48
+Ppar = 0.47
+FTRANSL = 0.22
+GCC = 0.77
+HD = 1.149
+RDRSHM = 0.03
+LAIC = 4
+
+FNTR=3
+NTR = 0.065
+LNTR = 0.04
+WUE = 4
+DSLA = 25
+RUE = 2.84

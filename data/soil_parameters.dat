@@ -1,0 +1,12 @@
+# Soil parameters for the campbell Diaz soil module
+RUNOFF1 = 0.2
+RUNOFF2 = 0.8
+FCP = 0.386
+PWPP = 0.217
+ADWCP = 0.002
+TCK = 0.05
+RMIN = 100000
+PSIPWP = -1500
+PSIFC = -30
+S = 0.2
+RDMAX = 0.9
