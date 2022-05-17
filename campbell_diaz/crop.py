@@ -115,10 +115,6 @@ class Campbell(SimulationObject):
         RDRT   = AfgenTrait()
         RDRSHM = Float(-99.)
         LAIC   = Float(-99.)
-
-        DVV1 = Float(-99.)
-        DVV2 = Float(-99.)
-        DVV3 = Float(-99.)
         
         initLAI = Float(-99.)
 
@@ -142,6 +138,12 @@ class Campbell(SimulationObject):
         
                               
     class RateVariables(RatesTemplate):
+
+        Es_mn   = Float(-99.)
+        Es_mx   = Float(-99.)
+        Es_avg  = Float(-99.)
+        VPD     = Float(-99.)
+        
         RDRDV = Float(-99.)
         RDRSH = Float(-99.)
         RDR   = Float(-99.)
@@ -151,7 +153,7 @@ class Campbell(SimulationObject):
         DM_R    = Float(-99.)
         DM      = Float(-99.)  
         PDM      = Float(-99.)             
-        VDD     = Float(-99.)
+       
         
         FI      = Float(-99.)
         ROOT    = Float(-99.) 
@@ -169,28 +171,38 @@ class Campbell(SimulationObject):
         #root
         RD        = Float(-99.)
         WD        = Float(-99.)
+       
 
     class StateVariables(StatesTemplate):
         TDM     = Float(-99.)
-        TDMv    = Float(-99.)
-
         TSTEM   = Float(-99.) 
         TLEAF   = Float(-99.)        
         TSEED   = Float(-99.) 
         YIELD   = Float(-99.) 
         LAI     = Float(-99.) 
-        LAIFlowering = Float(-99.) 
         TDLEAF  = Float(-99.)        
         SLA     = Float(-99.)
-        
-        TDMFlowering = Float(-99.)
+
         TDMTRANSL = Float(-99.)
         POOLTRSL = Float(-99.)
         #root
         TRD     = Float(-99.)
         da      = Int
+        #cumulative variable to extract features
+        LAIR1 = Float(-99.) 
+        LAIR5 = Float(-99.) 
+        TDMFlowering = Float(-99.)
+        TDMR1 = Float(-99.)
+        TDMR5 = Float(-99.)
         CWDv  = Float(-99.)
         CWDr  = Float(-99.)
+        CVPDv  = Float(-99.)
+        CVPDr  = Float(-99.)
+        CTv  = Float(-99.)
+        CTr  = Float(-99.)
+        RADv = Float(-99.)
+        RADr = Float(-99.)
+       
 
         
     def initialize(self, day, kiosk, parametervalues):
@@ -212,10 +224,13 @@ class Campbell(SimulationObject):
         #         FO = self.kiosk["FO"]
         # =============================================================================
         self.states = self.StateVariables(kiosk, publish=["TRD"],
-                                          TDM=0.00, TDMv=0, GLEAF=0.0, TSTEM=0.0,
+                                       
+                                          TDM=0.00,  GLEAF=0.0, TSTEM=0.0,
                                           TLEAF=0.0,TSEED=0.0,YIELD=0.0, 
                                           LAI=self.params.initLAI, TDLEAF =0, SLA=SLA, TRD=0.0,da=0,
-                                          TDMFlowering=None, LAIFlowering=None, TDMTRANSL=0,POOLTRSL=0, CWDv=0.,CWDr=0.)
+                                          TDMFlowering=None, TDMR1=None, LAIR1=None,TDMR5=None, LAIR5=None,
+                                           CVPDv = 0., CVPDr = 0., CTv= 0., CTr = 0., RADv = 0., RADr =0., 
+                                          TDMTRANSL=0,POOLTRSL=0, CWDv=0.,CWDr=0.)
 
     @prepare_rates
     def calc_rates(self, day, drv):                
@@ -234,9 +249,11 @@ class Campbell(SimulationObject):
 
         self.part.calc_rates(day, drv)
               
-        r.VDD = convert_hPa_to_KPa(drv.TMAX - drv.TMIN)*((p.DVV1*drv.TEMP+ p.DVV2)*drv.TEMP+ p.DVV3)          
-                             
-        print("VDD=", r.VDD)  
+        r.Es_mn=0.6108 * math.exp( max(((17.27 * drv.TMIN)/(drv.TMIN + 237.3)),0.001) )
+        r.Es_mx=0.6108 * math.exp( max(((17.27 * drv.TMAX)/(drv.TMAX + 237.3)),0.001) )
+        r.Es_avg=(r.Es_mn + r.Es_mx )/2
+        r.VPD=r.Es_avg - convert_hPa_to_KPa(drv.VAP)
+            
         r.FI = 1. - mp.exp(-p.K * s.LAI)
         r.PARi = convert_j_Mj(drv.IRRAD) * p.Ppar * r.FI
                    
@@ -256,12 +273,12 @@ class Campbell(SimulationObject):
             else:
                 k.PTa = self.kiosk["PTa"]     
                              
-            r.DM_W = k.Ta * (p.WUE/r.VDD)
-            print("Ta=", k.Ta)
-            print("DM=", r.DM_W)
+            r.DM_W = k.Ta * (p.WUE/r.VPD)
             r.DM_R = convert_g_kg(r.PARi * p.RUE )
+           
             r.DM = min(r.DM_W, r.DM_R) 
-            r.PDM = k.PTa * (p.WUE/r.VDD)                  
+            
+            r.PDM = k.PTa * (p.WUE/r.VPD)                  
             r.STEMS = r.DM * k.FS             
             r.WLEAF = r.DM * k.FL
             r.LEAF = r.DM * k.FL * convert_ha_m2(s.SLA)            
@@ -293,10 +310,11 @@ class Campbell(SimulationObject):
             r.WDLEAF = r.TN/p.LNTR                   
             r.DLEAF = r.WDLEAF * p.DSLA                                                      
             r.GLEAF = r.LEAF - max(r.DLAI, r.DLEAF)
-                                                          
+
         #Rooting growth
         r.RD = p.RDMAX * (1./(1+44.2*math.exp(-15*(s.da)/(140))))  
         r.WD = k.PTa - k.Ta
+    
 
     @prepare_states
     def integrate(self,day,delt):
@@ -319,33 +337,60 @@ class Campbell(SimulationObject):
         self.part.integrate(day, delt=1.0)
 
         DVS = self.kiosk["DVS"]
-        s.SLA = p.SLATB(DVS)     
+        s.SLA = p.SLATB(DVS)  
    
         s.TDM += r.DM
-        print("TDM", s.TDM)
-        s.TDMv += r.STEMS + r.WLEAF
+        
         if s.TDMFlowering is None and k.DVS >= 1.:
-            s.TDMFlowering = s.TDMv
-            s.TDMTRANSL = s.TDMFlowering * p.FTRANSL
+            s.TDMFlowering = s.TDM
+            s.TDMTRANSL = s.TDMFlowering * p.FTRANSL            
+            s.TDMR1 = s.TDM * 10000
                
         s.TDMTRANSL -= r.TRANSL
         s.TSEED += r.SEED         
-        s.YIELD = s.TSEED * p.GCC * p.HD
+        s.YIELD = s.TSEED * p.GCC * p.HD * 10000
         s.TSTEM += r.STEMS
         s.TLEAF += r.DM * k.FL 
         s.LAI +=  r.GLEAF
-                           
-        
-        if s.LAIFlowering is None and k.DVS >= 1.3:
-            s.LAIFlowering = s.LAI
-
+        #print(day,k.DVS)
         s.da+=1  
-        
         s.TRD = r.RD
-        if k.DVS<1:            
-            s.CWDv += r.WD
-            
-        else:
-            s.CWDr += r.WD
-            
+        
+        ##Cumulative variable to extract features
+                                      
+        if s.LAIR1 is None and k.DVS >= 1.:
+            s.LAIR1 = s.LAI            
+        if s.LAIR5 is None and k.DVS >= 1.5:
+            s.LAIR5= s.LAI
 
+        if s.TDMR5 is None and k.DVS >= 1.5:
+            s.TDMR5 = s.TDM * 10000
+        
+        if k.DVS > 0 and k.DVS <= 1.:
+            s.CVPDv += r.VPD 
+            s.CWDv += r.WD * 1000
+            s.CTv += k.Ta * 1000
+            s.RADv += r.PARi
+            
+        if k.DVS > 1 and k.DVS <= 2.:
+            s.CVPDr += r.VPD
+            s.CWDr += r.WD * 1000
+            s.CTr += k.Ta * 1000
+            s.RADr += r.PARi
+
+           
+    @prepare_states       
+    def _set_variable_LAI(self,value):
+        #print(f"Trying to update LAI with {value}")
+        
+        s = self.states
+        oTLEAF=s.TLEAF        
+        oLAI = max(0.1,s.LAI)
+        nLAI=max(0.1,value)
+        
+        s.TLEAF=oTLEAF*nLAI/oLAI
+        s.LAI=nLAI
+        increments={"LAI":s.LAI - oLAI,"TLEAF":s.TLEAF-oTLEAF}
+        
+        
+        return increments
