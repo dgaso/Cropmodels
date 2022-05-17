@@ -127,7 +127,7 @@ class Water_balance(SimulationObject):
     class RateVariables(RatesTemplate):
         PE        = Float(-99.)
         PT        = Float(-99.)
-        EPT        = Float(-99.)
+        ETP        = Float(-99.)
         PREC      = Float(-99.)
         nl        = Int
         FC        = Float(-99.) 
@@ -144,7 +144,8 @@ class Water_balance(SimulationObject):
         values_RW = [] 
         RWATER    = Instance(np.ndarray)         
         NWC       = Float(-99.)
-        EVS       = Float(-99.)                       
+        EVS       = Float(-99.)
+                            
         SPSI      = Float(-99.)
         values_SPSI = []
         SP        = Instance(np.ndarray) 
@@ -188,6 +189,13 @@ class Water_balance(SimulationObject):
         Diff_WC   = Float(-99.)
         TWC       = Float(-99.)
         W_Stress  = Float(-99.)
+        
+        # Cumulaive variables to extract features
+        
+        CRainv = Float(-99.)
+        CRainr = Float(-99.)
+        TWCR1 = Float(-99.)
+        TWCR5 = Float(-99.)
                 
     def initialize(self, day, kiosk, parametervalues):        
         self.params = self.Parameters(parametervalues)
@@ -199,7 +207,8 @@ class Water_balance(SimulationObject):
                                           WC=np.full(layers,self.params.FCP*self.params.TCK), 
                                           WCv=np.full(layers,self.params.FCP*self.params.TCK),
                                           TT=0.0, Diff_WC=0., W_Stress=0, TINTERC=0, TRUNOFF=0,
-                                          PERC=0, TE=0, Ta=0,  WB_close =0, TPREC=0.0, TWC=0.)
+                                          PERC=0, TE=0, Ta=0,  WB_close =0, TPREC=0.0, TWC=0.,
+                                          CRainv =0., CRainr = 0.,TWCR1 = None, TWCR5 = None)
 
     @prepare_rates
     def calc_rates(self, day, drv):                
@@ -220,9 +229,9 @@ class Water_balance(SimulationObject):
 
         r.PE = convert_cm_to_m(drv.ET0 * (1 - k.FI))
         r.PT = convert_cm_to_m(drv.ET0 * k.FI)
-        r.ETP=convert_cm_to_m(drv.ET0 )*100*10
-        
-
+        r.ETP=convert_cm_to_m(drv.ET0)*100*10
+       
+       
         # Convert fc and pwp to m of H2O
         r.nl = math.floor(p.RDMAX/p.TCK) 
         r.FC = p.FCP * p.TCK
@@ -267,23 +276,23 @@ class Water_balance(SimulationObject):
             
             # Evaporation calculation
             if j < 1:
-                # if s.WC[0]>r.PWP:
-                #      r.EVS=r.PE
+                if s.WC[0]>r.PWP:
+                    r.EVS = r.PE                  
                 if s.WC[0] < r.PWP:
-                    r.PE = r.PE * (((s.WC[0]/p.TCK)-p.ADWCP)/(p.PWPP - p.ADWCP))**2.
-                r.NWC = s.WC[0] - r.PE  
-                r.EVS = r.PE               
+                    r.EVS = r.PE * (((s.WC[0]/p.TCK)-p.ADWCP)/(p.PWPP - p.ADWCP))**2.                 
+                r.NWC = s.WC[0] - r.EVS
+                             
                 if r.NWC < r.ADWC: 
                     r.NWC = r.ADWC                    
-                    r.EVS = r.EVS - r.NWC
-                                
+                 
+                                           
             # Fraction root per layer
             if j >= 1:
                 r.z+=p.TCK
-                if r.z <= k.TRD: 
-                   r.FROOT = p.TCK*(2.*(k.TRD - r.z) + p.TCK)/(k.TRD*k.TRD)
+                if r.z <= k.TRD:                     
+                    r.FROOT = p.TCK*(2.*(k.TRD - r.z) + p.TCK)/(k.TRD*k.TRD)
                 elif r.z > k.TRD and (r.z - p.TCK) < k.TRD:
-                   r.FROOT = ((k.TRD - r.z + p.TCK)/k.TRD)**2.
+                    r.FROOT = ((k.TRD - r.z + p.TCK)/k.TRD)**2.
                 else:
                     r.FROOT = 0.
 
@@ -314,6 +323,7 @@ class Water_balance(SimulationObject):
         r.AT = np.append(r.EVS, r.TL)
         r.T = np.sum(r.TL)
         r.net_RW = np.subtract(r.RWATER, r.AT)
+        
                 
 
     @prepare_states
@@ -332,16 +342,34 @@ class Water_balance(SimulationObject):
         s.TRUNOFF +=  r.RUNOFF
         s.PERC +=r.INFIL        
         s.TE += r.EVS
-        s.Ta = r.T       
-        s.WC = np.add(s.WC, r.net_RW)
-        s.WCv = (s.WC / p.TCK)
+        s.Ta = r.T
         
+        s.WC = np.add(s.WC, r.net_RW)
+        s.WCv = (s.WC / p.TCK)    
           
         # check WB closed
         s.TT+=r.T
         s.Diff_WC = np.sum(np.subtract(np.full(r.nl, r.FC), s.WC) )
         s.WB_close = s.TINTERC - s.TRUNOFF - s.PERC - s.TT - s.TE + s.Diff_WC
         s.TWC = (np.sum(np.subtract(s.WC, r.PWP)))*1000
-        
         s.W_Stress = r.T / max(r.PT, 1e-70)
+        
+        if k.DVS > 0 and k.DVS <= 1.:
+            s.CRainv += r.GPREC * 1000
+               
+        if k.DVS > 1 and k.DVS <= 2.:
+            s.CRainr += r.GPREC * 1000
+           
+        if s.TWCR1 is None and k.DVS >= 1.:
+            s.TWCR1 = max(0,s.TWC)
+            
+        if s.TWCR5 is None and k.DVS >= 1.5:
+            s.TWCR5 = max(0,s.TWC)
+            
+       
+            
+            
+            
+            
+            
         
