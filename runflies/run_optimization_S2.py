@@ -1,4 +1,3 @@
-
 # Copyright (c) 2020 Wageningen-UR
 # Deborah Gaso Melgar and Allard de Wit, June 2020
 
@@ -61,16 +60,19 @@ def read_Sentinel2_timeseries(col, row):
     ci = np.array(imarray) 
 
      
-    #get the date as a tuple
-    date=im.descriptions
-    #convert tuple into list
-    date_l=list(date)
+#     #get the date as a tuple
+#     date=im.descriptions
+#     #convert tuple into list
+#     date_l=list(date)
   
-    dates=[]
-    for fname in date_l:
-        name, d, *rest = fname.split("_")
-        dates.append(d.split("T")[0])
-    days = pd.to_datetime(dates)
+#     dates=[]
+#     for fname in date_l:
+#         name, d, *rest = fname.split("_")
+#         dates.append(d.split("T")[0])
+#     days = pd.to_datetime(dates)
+
+    # override dates of the image from config
+    days = pd.to_datetime(config.dates)
 
     CItimeseries = np.isnan(imarray[:,row,col])
     if all(flag == True for flag in CItimeseries[:]) == True:
@@ -128,7 +130,7 @@ def optimize_one_pixel(year, col, row, silent=False):
 
     # Start the objective function calculator
     objfunc_calculator = ObjectiveFunctionCalculator(params, wdp, agro, LAI_pixel)
-    defaults = [ cropd["WUE"],soild["RDMAX"],cropd["FNTR"],cropd["initLAI"] ]# ,
+    defaults = [ soild["FCP"],soild["RDMAX"],cropd["FNTR"],cropd["initLAI"] ]# ,
     error = objfunc_calculator(defaults)
     
     if not silent:
@@ -140,9 +142,26 @@ def optimize_one_pixel(year, col, row, silent=False):
     firstguess = [config.parameter_settings[pname]["default"] for pname in config.selected_parameters]
     x = opt.optimize(firstguess)
     harvest_yield=objfunc_calculator.df_simulations['YIELD'][objfunc_calculator.df_simulations.index[-1]]
-    deficit_veg=objfunc_calculator.df_simulations['CWDv'][objfunc_calculator.df_simulations.index[-1]]
-    deficit_rep=objfunc_calculator.df_simulations['CWDr'][objfunc_calculator.df_simulations.index[-1]]
-
+    
+    CWDv=objfunc_calculator.df_simulations['CWDv'][objfunc_calculator.df_simulations.index[-1]]
+    CWDr=objfunc_calculator.df_simulations['CWDr'][objfunc_calculator.df_simulations.index[-1]]
+    TDMR1=objfunc_calculator.df_simulations['TDMR1'][objfunc_calculator.df_simulations.index[-1]]
+    
+    TDMR5=objfunc_calculator.df_simulations['TDMR5'][objfunc_calculator.df_simulations.index[-1]]
+    LAIR1=objfunc_calculator.df_simulations['LAIR1'][objfunc_calculator.df_simulations.index[-1]]
+    LAIR5=objfunc_calculator.df_simulations['LAIR5'][objfunc_calculator.df_simulations.index[-1]]     
+    CRainv=objfunc_calculator.df_simulations['CRainv'][objfunc_calculator.df_simulations.index[-1]] 
+    CRainr=objfunc_calculator.df_simulations['CRainr'][objfunc_calculator.df_simulations.index[-1]] 
+    CVPDv=objfunc_calculator.df_simulations['CVPDv'][objfunc_calculator.df_simulations.index[-1]]
+    CVPDr=objfunc_calculator.df_simulations['CVPDr'][objfunc_calculator.df_simulations.index[-1]]
+    CTv=objfunc_calculator.df_simulations['CTv'][objfunc_calculator.df_simulations.index[-1]]
+    CTr=objfunc_calculator.df_simulations['CTr'][objfunc_calculator.df_simulations.index[-1]]                                                 
+    TWCR1=objfunc_calculator.df_simulations['TWCR1'][objfunc_calculator.df_simulations.index[-1]]                                                 
+    TWCR5=objfunc_calculator.df_simulations['TWCR5'][objfunc_calculator.df_simulations.index[-1]]                                                 
+    CRADv=objfunc_calculator.df_simulations['RADv'][objfunc_calculator.df_simulations.index[-1]]                                                 
+    CRADr=objfunc_calculator.df_simulations['RADr'][objfunc_calculator.df_simulations.index[-1]]
+                                                     
+                                                     
     #save errors from opt
     errlai=objfunc_calculator.err
     rrmse_lai = objfunc_calculator.rrmse
@@ -167,7 +186,8 @@ def optimize_one_pixel(year, col, row, silent=False):
 #    plt.close("all")
 
 
-    return harvest_yield ,x[0],x[1],x[2], x[3], LAI_max,deficit_veg,deficit_rep
+    return harvest_yield ,x[0],x[1],x[2], x[3], LAI_max,CWDv,CWDr,TDMR1,TDMR5,LAIR1, LAIR5,CRainv,CRainr, CVPDv,CVPDr,CTv,CTr,TWCR1,TWCR5,CRADv,CRADr
 
 if __name__ == "__main__":
-    optimize_one_pixel(year=2020, col=4, row=4)
+    optimize_one_pixel(year=2020, col=72, row=4)
+
