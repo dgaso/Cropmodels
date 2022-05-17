@@ -16,6 +16,12 @@ TSUMEM   =  90.     # temperature sum from sowing to emergence [cel d]
 
 # phenology 
 #MG=3.66
+#DVRMAX1  = 0.03     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.06     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 15.02
+#Popt = 9.49
+
+#MG=3.66
 #DVRMAX1  = 0.0398     # Maximum development rate from emergence to anthesis [cel d]
 #DVRMAX2  = 0.0567     # Maximum development rate from anthesis to maturity [cel d]
 #Pcrt = 15.02
@@ -27,17 +33,17 @@ TSUMEM   =  90.     # temperature sum from sowing to emergence [cel d]
 #Pcrt = 14.89
 #Popt = 7.92
 
-#MG=5.66
-#DVRMAX1  = 0.0278     # Maximum development rate from emergence to anthesis [cel d]
-#DVRMAX2  = 0.0844     # Maximum development rate from anthesis to maturity [cel d]
-#Pcrt = 14.3
-#Popt = 7.84
+MG=5.66
+DVRMAX1  = 0.0278     # Maximum development rate from emergence to anthesis [cel d]
+DVRMAX2  = 0.0844     # Maximum development rate from anthesis to maturity [cel d]
+Pcrt = 14.3
+Popt = 7.84
     
 #MG=6
-DVRMAX1  = 0.0247     # Maximum development rate from emergence to anthesis [cel d]
-DVRMAX2  = 0.0994     # Maximum development rate from anthesis to maturity [cel d]
-Pcrt = 14.11
-Popt = 7.66
+#DVRMAX1  = 0.0247     # Maximum development rate from emergence to anthesis [cel d]
+#DVRMAX2  = 0.0994     # Maximum development rate from anthesis to maturity [cel d]
+#Pcrt = 14.11
+#Popt = 7.66
     
 #MG=7
 #DVRMAX1  = 0.0231     # Maximum development rate from emergence to anthesis [cel d]
@@ -46,7 +52,7 @@ Popt = 7.66
 #Popt = 7.78
 
 
-MG       = 2.       # Maturity group rating
+#MG       = 2.       # Maturity group rating
 Tmin = 7.0          # Minimum temperature for development rates 
 Topt = 31.0         # optimal temperature ...
 Tmax = 40.0         # Maximum temperature ...
@@ -170,9 +176,6 @@ SSATB = [0.0, 0.0,  # specific stem area [ha kg-1]
 SPAN     =  23.     # life span of leaves growing at 35 Celsius [d]
 TBASE    =   7.0    # lower threshold temp. for ageing of leaves [cel]
 
-DVV1 = 0.00109
-DVV2 = 0.011 
-DVV3 = 0.35
 
 initLAI=0.2
 
