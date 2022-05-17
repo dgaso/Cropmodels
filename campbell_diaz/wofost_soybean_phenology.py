@@ -183,7 +183,6 @@ class SoybeanPhenology(SimulationObject):
 
     photoperiod_reduction_factor = Instance(PhotoperiodReductionFactor)
     temperature_reduction_factor = Instance(TemperatureReductionFactor)
-
     class Parameters(ParamTemplate):
         TSUMEM = Float(-99.)  # Temp. sum for emergence
         TBASEM = Float(-99.)  # Base temp. for emergence
