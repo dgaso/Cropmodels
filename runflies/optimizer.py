@@ -8,7 +8,7 @@ class ModelRerunner(object):
     Returns a pandas DataFrame with simulation results of the model with given
     parameter values.
     """
-    parameters = ["WUE", "RDMAX","FNTR","initLAI"]# ,
+    parameters = ["FCP", "RDMAX","FNTR","initLAI"]# ,
 
     def __init__(self, params, wdp, agro):
         self.params = params
