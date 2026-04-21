@@ -37,64 +37,91 @@ def convert_g_kg(g):
 class Campbell(SimulationObject):
     """Parameters**
 
-    ============ ================================================= ==== ========
-     Name        Description                                             Unit
-    ============ ================================================= ==== ========
-    DVV1         Paramter 1 for vapor deficit equation
-    DVV2         Paramter 2 for vapor deficit equation
-    DVV3         Paramter 3 for vapor deficit equation
-    NTR          Nitrogen content in grain                                g.g-1
-    LNTR         Nitrogen content in leaves                               g.g-1
-    FNTR         Fraction of N translocated from leaves to seeds
-    HD           Factor to standardize humidity content at 13% 
-    K            Light extinction coefficient (Kukal and Irmak, 2020)
-    Ppar         Proportion of PAR in the total radiation
-    WUE          Dry matter water ratio                                     Pa
-    DSLA         Specific leaf area for dead leaves                    m-2 kg-1
-    RUE          Radiation use efficiency (Kukal and Irmak, 2020)       g Mj m2
-    GCC          Conversion coefficient (CHO to soyeban seed)
-    LAIC         Critic leaf area index                                 m-2 m-2
-    FTRANSL      Fraction of TDM to be translocated
-    RDRSHM       Maximum relative death rate of leaves due to shading (LINTUL2)  d-1
+    ============ =================================================                  ==== ========
+     Name        Description                                                               Unit
+    ============ =================================================                  ==== ========
+    initLAI      Initial leaf area index						                          m-2.m-2
+    SLATB	 Specific leaf area as a function of DVS			                     	  ha kg-1
+    K            Light extinction coefficient (Kukal and Irmak, 2020)                     -
+    Ppar         Proportion of PAR in the total radiation                                 -
+    WUE          Water Use Efficiency                                                     kgDM. kPa. m-3 of H20
+    DSLA         Specific leaf area for dead leaves                                       m-2.kg-1
+    RUE          Radiation use efficiency (Kukal and Irmak, 2020)                         g.Mj.m2   
+    LAIC         Critic leaf area index                                                   m-2.m-2
+    FTRANSL      Fraction of TDM to be translocated                                       kg seed . kg DM
+    RDRSHM       Maximum relative death rate of leaves due to shading (LINTUL2)           d-1
+    RDRT         Senescence rate as a function of temperature                             -
+    RDMAX	 Maximum root depth							                                  m
+    NTR          Nitrogen content in grain (Ortez et al., 2019)                           g.g-1
+    LNTR         Nitrogen content in leaves (Ortez et al., 2019)                          g.g-1
+    FNTR         Fraction of N translocated from leaves to seeds (Ortez et al., 2019)     -
+    HD           Factor to standardize humidity content at 13%                            -
+    GCC          Conversion coefficient (CHO to soyeban seed)                             kg.kg-1
+    FTRANSL      Fraction of biomass to be translocated                                   -
     ============ ================================================= ==== ========
     Rates**
 
-    ============ ================================================= ==== ========
-     Name        Description                                             Unit
-    ============ ================================================= ==== ========
-    FI           Fractional interception
-    PE           Potential evaporation                                      m
-    PT           Potential transpiration                                    m
-    VDD          Correction by vapor deficit water                         KPa
-    PARi         Intercepted PAR                                         Mj m-2
-    DM           Rate of growth                                          kg m-2
-    ROOT         Growth rate root                                        kg m-2
-    STEMS        Growth rate stems                                       kg m-2
-    LEAF         Growth rate leaf                                        kg m-2
-    SEED         Growth rate storage organs                              kg m-2
-    TN           Translocated nitrogen from leaves to grains             kg m-2
-    DLEAF        Senescence rate of leaf                                 kg m-2
-    RDRSH        Relative death rate of leaves due to shading (LINTUL2)   d-1
-    RDRT         Table of RDR as a function of temperature
-    ============ ================================================= ==== ========
+    ============ =================================================                  ==== ========
+     Name        Description                                                                Unit
+    ============ =================================================                  ==== ========
+    VPD          Vapor pressure deficit							                          KPa  
+    FI           Fraction of interception                                                  -
+    PARi         Intercepted PAR                                                          Mj.m-2
+    DM           Growth rate                                                              kg.m-2
+    DM_W         Growth rate computed from WUE					                     	  kg.m-2
+    DM_R         Growth rate computed from RUE						                      kg.m-2
+    PDM          Potential growth rate 							                          kg.m-2
+    WSTEMS       Growth rate stems                                                        kg.m-2
+    WLEAF        Growth rate leaf                                                         kg.m-2
+    SEED         Growth rate storage organs                                               kg.m-2
+    PSEED        Potential growth rate storage organs                                     kg.m-2
+    TN           Translocated nitrogen from leaves to grains                              kgN.m-2
+    WDLEAF       Weight of dead leaf                                                      kg.m-2 
+    DLEAF        Leaf area index of dead leaves computed from N translocation             m-2.m-2
+    DLAI         Leaf area index of dead leaves computed from temp (LINTUL2)              m-2.m-2
+    GLEAF        Leaf area index of green leaves					                      m-2.m-2
+    RDRSH        Relative death rate of leaves due to shading (LINTUL2)                   -
+    RDRDV        Relative death rate of leaves due to temp (LINTUL2)			          -
+    RDR          Final Senescence rate from LINTUL2      				                  -
+    TRANSL       Biomass translocation rate                                               kg.m-2
+    RD           Root growth                                                              m
+    WD           Water deficit                                                            m
+ 
+   ============ =================================================                   ==== ========
     State variables**
 
-    Name         Description                                             Unit
+    Name         Description                                                                Unit
+    ============ =================================================                   ==== ========
+    TDM          Total above-ground biomass                                                kg m-2
+    TSTEMS       Total weight of stems                                                     kg m-2
+    TLEAF        Total weight of leaves                                                    kg m-2
+    TSEED        Total weight of storage organs                                            kg m-2
+    LAI          Leaf area index                                                           m-2 m-2
+    TDMTRANSL    Total above-ground biomass for translocation                              m-2 m-2
+    YIELD        Total yield at 13% of humidity                                            kg.ha-1
+    TRD          Roots depth   								                               m
     ============ ================================================= ==== ========
-    TPE          Total potential evaporation                                m
-    TPT          Total potential transpiration                              m
-    TDM          Total above-ground biomass                              kg m-2
-    TROOT        Total weight of roots                                   kg m-2
-    TSTEMS       Total weight of stems                                   kg m-2
-    TLEAF        Total weight of leaves                                 m-2 m-2
-    TSEED        Total weight of storage organs                          kg m-2
-    LAI          Leaf area index                                        m-2 m-2
-    TDLEAF       Total of dead leaves                                   m-2 m-2
-    GLEAF        Total of green leaves                                  m-2 m-2
-    SLA          Specific leaf area                                    m-2 kg-1
 
-    ============ ================================================= ==== ========
-    **External dependencies:**
+   ============ =================================================                   ==== ========
+    State variables to extract features for ML**
+
+    Name         Description                                                                Unit
+    ============ =================================================                   ==== ========
+    TDMR1          Total above-ground biomass at flowering                                 kg m-2
+    TDMR5          Total above-ground biomass at beginning Seeds                           kg m-2  
+    LAIR1          Leaf area index at flowering                                            m-2 m-2
+    LAIR5          Leaf area index at beginning Seeds                                      m-2 m-2
+    CVPDv   Cumulative vapor pressure deficit in the vegetative stage                      KPa
+    CVPDr   Cumulative vapor pressure deficit in the reproductive stage                    KPa
+    CWDv    Cumulative water deficit in the vegetative stage                               m
+    CWDr    Cumulative water deficit in the reproductive stage                             m
+    CTv      Cumulative crop transpiration in the vegetative stage                         m
+    CTr      Cumulative crop transpiration in the reproductive stage                       m
+    RADv  Cumulative intercepted radiation in the vegetative stage                         Mj.m2
+    RADr  Cumulative intercepted radiation in the reproductive stage                       Mj.m2
+   ============ ================================================= ==== ========
+
+   **External dependencies:**
 
     =======  =================================== =================  ============
      Name     Description                         Provided by         Unit
@@ -112,82 +139,66 @@ class Campbell(SimulationObject):
     soil  = Instance(SimulationObject)
 
     class Parameters(ParamTemplate):                        
-        RDRT   = AfgenTrait()
-        RDRSHM = Float(-99.)
-        LAIC   = Float(-99.)
-        
-        initLAI = Float(-99.)
 
+        initLAI = Float(-99.)
+        SLATB   = AfgenTrait()
         K      = Float(-99.)
         Ppar   = Float(-99.)
-        WUE    = Float(-99.)
-       
+        WUE    = Float(-99.)  
         DSLA   = Float(-99.) 
+        RUE    = Float(-99.) 
+        LAIC   = Float(-99.)   
+        FTRANSL = Float(-99.)
+        RDRSHM = Float(-99.)
+        RDRT   = AfgenTrait()            
+        RDMAX = Float(-99.)
+        
         NTR    = Float(-99.)
         LNTR   = Float(-99.)
         FNTR  = Float(-99.)
         HD     = Float(-99.)
-
         GCC = Float(-99.)
-        FTRANSL = Float(-99.)
-        
-        SLATB   = AfgenTrait()
-        RUE    = Float(-99.)   
-        
-        RDMAX = Float(-99.)
-        
+       
                               
     class RateVariables(RatesTemplate):
-
-        Es_mn   = Float(-99.)
-        Es_mx   = Float(-99.)
-        Es_avg  = Float(-99.)
+        # growth
         VPD     = Float(-99.)
-        
-        RDRDV = Float(-99.)
-        RDRSH = Float(-99.)
-        RDR   = Float(-99.)
-        DLAI  = Float(-99.)
-        
+        FI      = Float(-99.)
+        PARi    = Float(-99.)
+        DM      = Float(-99.)  
         DM_W    = Float(-99.)
         DM_R    = Float(-99.)
-        DM      = Float(-99.)  
         PDM      = Float(-99.)             
-       
-        
-        FI      = Float(-99.)
-        ROOT    = Float(-99.) 
-        STEMS   = Float(-99.) 
-        LEAF    = Float(-99.) 
+        WSTEMS   = Float(-99.) 
         WLEAF    = Float(-99.) 
         SEED    = Float(-99.)
         PSEED   = Float(-99.)
+        # Senescence and biomass translocation
         TN      = Float(-99.) 
+        TRANSL  = Float(-99.)
         WDLEAF  = Float(-99.)
         DLEAF   = Float(-99.)
+        DLAI  = Float(-99.)
         GLEAF   = Float(-99.)
-        TRANSL  = Float(-99.)
-        
+        RDRSH = Float(-99.)
+        RDRDV = Float(-99.)
+        RDR   = Float(-99.)
+                      
         #root
         RD        = Float(-99.)
         WD        = Float(-99.)
        
-
     class StateVariables(StatesTemplate):
         TDM     = Float(-99.)
         TSTEM   = Float(-99.) 
         TLEAF   = Float(-99.)        
-        TSEED   = Float(-99.) 
-        YIELD   = Float(-99.) 
-        LAI     = Float(-99.) 
-        TDLEAF  = Float(-99.)        
-        SLA     = Float(-99.)
-
+        TSEED   = Float(-99.)
+        LAI     = Float(-99.)               
         TDMTRANSL = Float(-99.)
-        POOLTRSL = Float(-99.)
-        #root
+        YIELD   = Float(-99.)         
         TRD     = Float(-99.)
-        da      = Int
+        da      = Int        
+       
         #cumulative variable to extract features
         LAIR1 = Float(-99.) 
         LAIR5 = Float(-99.) 
@@ -202,8 +213,6 @@ class Campbell(SimulationObject):
         CTr  = Float(-99.)
         RADv = Float(-99.)
         RADr = Float(-99.)
-       
-
         
     def initialize(self, day, kiosk, parametervalues):
         self.params = self.Parameters(parametervalues)
@@ -248,11 +257,12 @@ class Campbell(SimulationObject):
             return
 
         self.part.calc_rates(day, drv)
-              
-        r.Es_mn=0.6108 * math.exp( max(((17.27 * drv.TMIN)/(drv.TMIN + 237.3)),0.001) )
-        r.Es_mx=0.6108 * math.exp( max(((17.27 * drv.TMAX)/(drv.TMAX + 237.3)),0.001) )
-        r.Es_avg=(r.Es_mn + r.Es_mx )/2
-        r.VPD=r.Es_avg - convert_hPa_to_KPa(drv.VAP)
+        
+        Es_mn=0.6108 * math.exp( max(((17.27 * drv.TMIN)/(drv.TMIN + 237.3)),0.001) )
+        Es_mx=0.6108 * math.exp( max(((17.27 * drv.TMAX)/(drv.TMAX + 237.3)),0.001) )
+        Es_avg=(Es_mn + Es_mx )/2
+        
+        r.VPD = Es_avg - convert_hPa_to_KPa(drv.VAP)
             
         r.FI = 1. - mp.exp(-p.K * s.LAI)
         r.PARi = convert_j_Mj(drv.IRRAD) * p.Ppar * r.FI
@@ -271,17 +281,18 @@ class Campbell(SimulationObject):
             if "PTa" not in self.kiosk:
                 k.PTa = 0.0
             else:
-                k.PTa = self.kiosk["PTa"]     
-                             
+                k.PTa = self.kiosk["PTa"]    
+                
+            # Growth                 
             r.DM_W = k.Ta * (p.WUE/r.VPD)
-            r.DM_R = convert_g_kg(r.PARi * p.RUE )
-           
-            r.DM = min(r.DM_W, r.DM_R) 
-            
-            r.PDM = k.PTa * (p.WUE/r.VPD)                  
-            r.STEMS = r.DM * k.FS             
-            r.WLEAF = r.DM * k.FL
-            r.LEAF = r.DM * k.FL * convert_ha_m2(s.SLA)            
+            r.DM_R = convert_g_kg(r.PARi * p.RUE )         
+            r.DM = min(r.DM_W, r.DM_R)            
+            r.PDM = k.PTa * (p.WUE/r.VPD) 
+
+            # Partition
+            r.WSTEMS = r.DM * k.FS             
+            r.WLEAF = r.DM * k.FL           
+            r.LEAF = r.WLEAF * convert_ha_m2(p.SLATB(k.DVS))            
             r.PSEED = r.PDM * k.FO  
        
             # Biomass reallocated from vegetative to seed
@@ -293,7 +304,7 @@ class Campbell(SimulationObject):
             # Senescence from N translocation
             r.TN = ((r.SEED*p.NTR)/p.FNTR)  
             
-             #senescence rate from LINTUL
+            # senescence rate from LINTUL
             if k.DVS>1.5:              
                 r.RDRDV = p.RDRT(drv.TEMP)
                 r.RDRSH = p.RDRSHM *((s.LAI - p.LAIC)/ p.LAIC)
@@ -304,11 +315,14 @@ class Campbell(SimulationObject):
                 if r.RDRSH >0.03:
                     r.RDRSH =0.03          
             else: r.RDRDV = 0
-                            
+            
+            # Final senescence            
             r.RDR = max(r.RDRDV, r.RDRSH)   
-            r.DLAI = s.LAI * r.RDR                                     
+            r.DLAI = s.LAI * r.RDR 
+            
             r.WDLEAF = r.TN/p.LNTR                   
-            r.DLEAF = r.WDLEAF * p.DSLA                                                      
+            r.DLEAF = r.WDLEAF * p.DSLA  
+            
             r.GLEAF = r.LEAF - max(r.DLAI, r.DLEAF)
 
         #Rooting growth
@@ -337,8 +351,7 @@ class Campbell(SimulationObject):
         self.part.integrate(day, delt=1.0)
 
         DVS = self.kiosk["DVS"]
-        s.SLA = p.SLATB(DVS)  
-   
+         
         s.TDM += r.DM
         
         if s.TDMFlowering is None and k.DVS >= 1.:
@@ -349,10 +362,10 @@ class Campbell(SimulationObject):
         s.TDMTRANSL -= r.TRANSL
         s.TSEED += r.SEED         
         s.YIELD = s.TSEED * p.GCC * p.HD * 10000
-        s.TSTEM += r.STEMS
-        s.TLEAF += r.DM * k.FL 
+        s.TSTEM += r.WSTEMS
+        s.TLEAF += r.WLEAF 
         s.LAI +=  r.GLEAF
-        #print(day,k.DVS)
+       
         s.da+=1  
         s.TRD = r.RD
         
@@ -394,3 +407,8 @@ class Campbell(SimulationObject):
         
         
         return increments
+
+        
+        
+      
+
