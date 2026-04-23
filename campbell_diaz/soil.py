@@ -5,6 +5,7 @@ Created on Thu Sep 19 16:20:52 2019
 @author: gaso001
 """
 import sys
+from pcse import signals
 from pcse.base import SimulationObject, ParamTemplate, RatesTemplate, StatesTemplate, VariableKiosk
 from pcse.decorators import prepare_rates, prepare_states
 from pcse.traitlets import Float,Int, Instance, Enum, Unicode
@@ -146,6 +147,8 @@ class Water_balance(SimulationObject):
         AT        = Instance(np.ndarray) 
         net_RW    = Instance(np.ndarray)
         
+        RIRR      = Float(-99.)
+        
     class StateVariables(StatesTemplate):  
         PTa     = Float(-99.)
         Ta      = Float(-99.)   
@@ -162,6 +165,8 @@ class Water_balance(SimulationObject):
         TWC       = Float(-99.)
         W_Stress  = Float(-99.)
         
+        TOTIRR   = Float(-99.)
+        
         # Cumulaive variables to extract features      
         CRainv = Float(-99.)
         CRainr = Float(-99.)
@@ -171,16 +176,25 @@ class Water_balance(SimulationObject):
     def initialize(self, day, kiosk, parametervalues):        
         self.params = self.Parameters(parametervalues)         
         self.rates = self.RateVariables(kiosk,publish = ["T","PT"]) 
-        self.kiosk = kiosk        
+        self.kiosk = kiosk
+
+        self._RIRR = 0.0
+        self._connect_signal(self._on_IRRIGATE, signals.irrigate)
+        
         layers = math.floor(self.params.RDMAX/self.params.TCK)
-        self.states = self.StateVariables(kiosk, publish=["Ta", "W_Stress","PTa"], Ta=0, PTa=0, Tp=0,                                        
+        self.states = self.StateVariables(kiosk,
+                                          publish=["Ta", "W_Stress","PTa"],
+                                          Ta=0, PTa=0, Tp=0,                                        
                                           WC=np.full(layers,self.params.FCP*self.params.TCK), 
                                           WCv=np.full(layers,self.params.FCP*self.params.TCK),
                                           TT=0.0, Diff_WC=0., W_Stress=1, TINTERC=0, TRUNOFF=0,
                                           PERC=0, TE=0, WB_close =0,  
                                           TWC=layers * ((self.params.FCP - self.params.PWPP) * self.params.TCK) * 1000.0,
-                                          CRainv =0., CRainr = 0.,TWCR1 = None, TWCR5 = None)
-
+                                          CRainv =0., CRainr = 0.,TWCR1 = None, TWCR5 = None,
+                                          TOTIRR=0.0)
+                                          
+    def _on_IRRIGATE(self, amount, efficiency=1.0):       
+        self._RIRR = max(0.0, amount / 100.0) * max(0.0, min(1.0, efficiency))
 
     @prepare_rates
     def calc_rates(self, day, drv):                
@@ -207,18 +221,39 @@ class Water_balance(SimulationObject):
         FC = p.FCP * p.TCK
         PWP = p.PWPP * p.TCK
         ADWC = p.ADWCP * p.TCK
-               
+        
+        # Rain + irrigation input
+        r.INTERC = 0.0
+        r.RUNOFF = 0.0
+        r.RIRR = self._RIRR
+        
         # Interception
         if drv.RAIN != 0.:
             r.INTERC = min(drv.RAIN/100, 0.001 * k.FI) 
         r.GPREC = ((drv.RAIN/100) - r.INTERC)
         
-        # Runoff calculation
-        if r.GPREC <= 0.2 * p.S:
-            r.RUNOFF = 0
+        # Total water arriving at soil surface
+        surface_input = r.GPREC + r.RIRR
+
+        # Runoff calculation over total surface water
+        if surface_input <= 0.2 * p.S:
+            r.RUNOFF = 0.0
         else:
-            r.RUNOFF = ((r.GPREC - p.RUNOFF1 * p.S)**2)/(r.GPREC + p.RUNOFF2 * p.S)                
-        r.INFIL = ((drv.RAIN/100) - r.INTERC - r.RUNOFF)
+            r.RUNOFF = ((surface_input - p.RUNOFF1 * p.S)**2) / (surface_input + p.RUNOFF2 * p.S)
+
+        # Water available for infiltration through the profile
+        r.INFIL = surface_input - r.RUNOFF
+
+        # Reset daily irrigation buffer
+        self._RIRR = 0.0
+
+
+        # # Runoff calculation
+        # if r.GPREC <= 0.2 * p.S:
+            # r.RUNOFF = 0
+        # else:
+            # r.RUNOFF = ((r.GPREC - p.RUNOFF1 * p.S)**2)/(r.GPREC + p.RUNOFF2 * p.S)                
+        # r.INFIL = ((drv.RAIN/100) - r.INTERC - r.RUNOFF)
 
         # Parameters for eq os SPSI
         B = math.log(p.PSIPWP/p.PSIFC)/math.log(p.FCP/p.PWPP)
@@ -330,11 +365,14 @@ class Water_balance(SimulationObject):
         s.TE += r.EVS      
         s.WC = np.add(s.WC, r.net_RW)
         s.WCv = (s.WC / p.TCK)    
-          
+         
+        s.TOTIRR += r.RIRR
+        
         # check WB closed
         s.TT+=r.T
         Diff_WC = np.sum(np.subtract(np.full(nl, FC), s.WC) )
-        s.WB_close = s.TINTERC - s.TRUNOFF - s.PERC - s.TT - s.TE + Diff_WC
+        #s.WB_close = s.TINTERC - s.TRUNOFF - s.PERC - s.TT - s.TE + Diff_WC
+        s.WB_close = s.TINTERC + s.TOTIRR - s.TRUNOFF - s.PERC - s.TT - s.TE + Diff_WC
         s.TWC = (np.sum(np.subtract(s.WC, PWP)))*1000
         
         if r.PT <= 0.0 or k.TRD <= 0.0:
