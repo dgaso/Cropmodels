@@ -41,7 +41,7 @@ class Campbell(SimulationObject):
      Name        Description                                                               Unit
     ============ =================================================                  ==== ========
     initLAI      Initial leaf area index						                          m-2.m-2
-    SLATB	 Specific leaf area as a function of DVS			                     	  ha kg-1
+    SLATB	     Specific leaf area as a function of DVS			                      ha kg-1
     K            Light extinction coefficient (Kukal and Irmak, 2020)                     -
     Ppar         Proportion of PAR in the total radiation                                 -
     WUE          Water Use Efficiency                                                     kgDM. kPa. m-3 of H20
@@ -66,24 +66,24 @@ class Campbell(SimulationObject):
     ============ =================================================                  ==== ========
     VPD          Vapor pressure deficit							                          KPa  
     FI           Fraction of interception                                                  -
-    PARi         Intercepted PAR                                                          Mj.m-2
-    DM           Growth rate                                                              kg.m-2
-    DM_W         Growth rate computed from WUE					                     	  kg.m-2
-    DM_R         Growth rate computed from RUE						                      kg.m-2
-    PDM          Potential growth rate 							                          kg.m-2
-    WSTEMS       Growth rate stems                                                        kg.m-2
-    WLEAF        Growth rate leaf                                                         kg.m-2
-    SEED         Growth rate storage organs                                               kg.m-2
-    PSEED        Potential growth rate storage organs                                     kg.m-2
-    TN           Translocated nitrogen from leaves to grains                              kgN.m-2
-    WDLEAF       Weight of dead leaf                                                      kg.m-2 
+    PARi         Intercepted PAR                                                          Mj.m-2.d-1
+    DM           Growth rate                                                              kg.m-2.d-1
+    DM_W         Growth rate computed from WUE					                     	  kg.m-2.d-1
+    DM_R         Growth rate computed from RUE						                      kg.m-2.d-1
+    PDM          Potential growth rate 							                          kg.m-2.d-1
+    WSTEMS       Growth rate stems                                                        kg.m-2.d-1
+    WLEAF        Growth rate leaf                                                         kg.m-2.d-1
+    SEED         Growth rate storage organs                                               kg.m-2.d-1
+    PSEED        Potential growth rate storage organs                                     kg.m-2.d-1
+    TN           Translocated nitrogen from leaves to grains                              kgN.m-2.d-1
+    WDLEAF       Weight of dead leaf                                                      kg.m-2.d-1 
     DLEAF        Leaf area index of dead leaves computed from N translocation             m-2.m-2
     DLAI         Leaf area index of dead leaves computed from temp (LINTUL2)              m-2.m-2
     GLEAF        Leaf area index of green leaves					                      m-2.m-2
     RDRSH        Relative death rate of leaves due to shading (LINTUL2)                   -
     RDRDV        Relative death rate of leaves due to temp (LINTUL2)			          -
     RDR          Final Senescence rate from LINTUL2      				                  -
-    TRANSL       Biomass translocation rate                                               kg.m-2
+    TRANSL       Biomass translocation rate                                               kg.m-2.d-1
     RD           Root growth                                                              m
     WD           Water deficit                                                            m
  
@@ -302,7 +302,7 @@ class Campbell(SimulationObject):
             else: r.SEED = r.DM * k.FO
             
             # Senescence from N translocation
-            r.TN = ((r.SEED*p.NTR)/p.FNTR)  
+            r.TN = r.SEED * p.NTR * p.FNTR 
             
             # senescence rate from LINTUL
             if k.DVS>1.5:              
