@@ -48,7 +48,7 @@ class Water_balance(SimulationObject):
     TCK          Thickness of soil layer                                    m
     RUNOFF1      Parameter 1 for runoff function                        -
     RUNOFF2      Parameter 2 for runoff function                        -
-    RMIN         Root resistance                                         J kg-1 
+    RMIN         Minimum root resistance                              J kg-1 m-1 
     PSIPWP       Permanent wilting water potential                       J kg-1 
     PSIFC        Field capacity water potential                          J kg-1 
     S            Surface storage condition                                  m
@@ -60,32 +60,34 @@ class Water_balance(SimulationObject):
     ============ ================================================= ==== ========
      Name        Description                                             Unit
     ============ ================================================= ==== ========
-    INTERC       Precipitation intercepted by the canopy                    m
-    GPREC        Ground precipitation                                       m
-    RUNOFF       Rate of runoff                                             m
-    INFIL        Water available for infiltration                           m
-    EVS          Rate of soil evaporation                                   m
-    TL           Transpiration per layer                                    m
-    AT           Actual Evapotranspiration per layer                        m
-    T            Total Evapotranspiration                                   m
-    net_RW	     Net water recharge                                         m
+    PE           Potential rate of soil evaporation                         m d-1
+    PT           Potential rate of transpiration                            m d-1
+    INTERC       Precipitation intercepted by the canopy                    m d-1
+    GPREC        Ground precipitation                                       m d-1
+    RUNOFF       Rate of runoff                                             m d-1
+    INFIL        Water available for infiltration                           m d-1
+    EVS          Rate of soil evaporation                                   m d-1
+    TL           Transpiration per layer                                    m d-1
+    AT           Actual Evapotranspiration per layer                        m d-1
+    T            Total Evapotranspiration                                   m d-1
+    net_RW	     Net water recharge                                         m d-1
     ============ ================================================= ==== ========
     Intermediate variables within Rates function**
 
     ============ ================================================= ==== ========
      Name        Description                                             Unit
     ============ ================================================= ==== ========
-    RW           Rate of recharging water in each layer                     m
-    NWC          Rate of water in the 1st layer                             m
-    RDr          Rate of root growth                                        m
-    B            Value for power equation of soil potential
-    A            Value for power equation of soil potential
-    SPSI         Soil potential per layer                            J kg-1 m-1
-    FROOT        Root fraction per layer                                   -
-    AVESPSI      Soil potential weighten by rooting fraction         J kg-1 m-1
-    RBAR         Root resistance                                     J kg-1 m-1
-    PSIX         Xilem Potential                                     J kg-1 m-1
-    LOSS         Rate of water loss per layer                            mH2O m
+    RW           Rate of recharging water in each layer                     m d-1
+    NWC          Rate of water in the 1st layer                             m d-1
+    RDr          Rate of root growth                                        m d-1
+    B            Value for power equation of soil potential                  -
+    A            Value for power equation of soil potential                J kg-1
+    SPSI         Soil potential per layer                                  J kg-1 
+    RBAR         Root resistance                                       J kg-1 d-1
+    FROOT        Root fraction per layer                                     -
+    AVESPSI      Soil potential weighten by rooting fraction            J kg-1 d-1 
+    PSIX         Xilem Potential                                        J kg-1 d-1
+    LOSS         Rate of water loss per layer                              mH2O m
        
     ============ ================================================= ==== ========   
 
@@ -252,14 +254,6 @@ class Water_balance(SimulationObject):
         # Reset daily irrigation buffer
         self._RIRR = 0.0
 
-
-        # # Runoff calculation
-        # if r.GPREC <= 0.2 * p.S:
-            # r.RUNOFF = 0
-        # else:
-            # r.RUNOFF = ((r.GPREC - p.RUNOFF1 * p.S)**2)/(r.GPREC + p.RUNOFF2 * p.S)                
-        # r.INFIL = ((drv.RAIN/100) - r.INTERC - r.RUNOFF)
-
         # Parameters for eq os SPSI
         B = math.log(p.PSIPWP/p.PSIFC)/math.log(p.FCP/p.PWPP)
         A = math.exp((math.log(-p.PSIFC)) + B * math.log(max(p.FCP , sys.float_info.min)) )
@@ -325,7 +319,7 @@ class Water_balance(SimulationObject):
         else:   
             #RBAR = p.RMIN/max(k.FI, 1e-70)
             RBAR = p.RMIN / k.FI
-            PSIX = AVEPSI - (RBAR*r.PT) 
+            PSIX = AVEPSI - (RBAR * r.PT) 
         
             if PSIX < p.PSIPWP: PSIX=p.PSIPWP
            
